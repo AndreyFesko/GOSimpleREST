@@ -15,17 +15,24 @@ import (
 )
 
 type Employee struct {
-	ID        int       `json:"id"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Email     string    `json:"email"`
-	Accounts  []Account `json:"accounts"`
+	User
+	Accounts []Account `json:"accounts"`
+}
+
+type User struct {
+	ID        int         `json:"id"`
+	FirstName string      `json:"first_name"`
+	LastName  string      `json:"last_name"`
+	Email     string      `json:"email"`
+	Phone     null.String `json:"phone"`
 }
 
 type Account struct {
-	ID     int `json:"id"`
-	UserID int `json:"user_id"`
-	Value  int `json:"value"`
+	ID       int  `json:"id"`
+	UserID   int  `json:"user_id"`
+	Value    int  `json:"value"`
+	Currency int  `json:"currency"`
+	Active   bool `json:"active"`
 }
 
 type Transaction struct {
@@ -71,15 +78,15 @@ func main() {
 	s := r.PathPrefix("/").Subrouter()
 
 	s.HandleFunc("/users", ListUsers).Methods(http.MethodGet)
-	s.HandleFunc("/user/", CreateUser).Methods(http.MethodPost)
+	s.HandleFunc("/users", CreateUser).Methods(http.MethodPost)
 
 	s.HandleFunc("/users/{id}", ReadUser).Methods(http.MethodGet)
 	s.HandleFunc("/users/{id}", UpdateUser).Methods(http.MethodPatch)
 	s.HandleFunc("/users/{id}", DeleteUser).Methods(http.MethodDelete)
 
 	s.HandleFunc("/users/{id}/accounts", CreateAccount).Methods(http.MethodPost)
-	s.HandleFunc("/users/{id}/accounts", ReadAccount).Methods(http.MethodGet)
-	s.HandleFunc("/users/{id}/accounts", DeleteAccount).Methods(http.MethodDelete)
+	s.HandleFunc("/users/{id}/accounts/{acc_id}/balance", ReadAccount).Methods(http.MethodGet)
+	s.HandleFunc("/users/{id}/accounts/{acc_id}", DeleteAccount).Methods(http.MethodDelete)
 
 	s.HandleFunc("/transactions", ListTransactions).Methods(http.MethodGet)
 	s.HandleFunc("/transactions", Transactions).Methods(http.MethodPost)
@@ -106,14 +113,14 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-	result := []Employee{}
+	result := make(map[int]User)
 	for rows.Next() {
-		e := new(Employee)
-		err := rows.Scan(&e.ID, &e.FirstName, &e.LastName, &e.Email)
+		e := new(User)
+		err := rows.Scan(&e.ID, &e.FirstName, &e.LastName, &e.Email, &e.Phone)
 		if err != nil {
 			log.Fatal(err)
 		}
-		result = append(result, *e)
+		result[e.ID] = *e
 	}
 	marshaled, _ := json.MarshalIndent(result, "", " ")
 	w.Write(marshaled)
@@ -130,11 +137,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlStatement := "INSERT INTO users (first_name, last_name, email)	VALUES ($1, $2, $3)"
-	_, err := db.Exec(sqlStatement, e.FirstName, e.LastName, e.Email)
+	sqlStatement := "INSERT INTO users (first_name, last_name, email, phone)	VALUES ($1, $2, $3, $4)"
+	_, err := db.Exec(sqlStatement, e.FirstName, e.LastName, e.Email, e.Phone)
 	if err != nil {
 		log.Fatal(err)
 	}
+	// w.WriteHeader(statusCode, 201)
 	http.Redirect(w, r, "http://localhost:9090/users", 301)
 	log.Printf("User %s %s created", e.FirstName, e.LastName)
 }
@@ -168,8 +176,8 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	e.ID, _ = strconv.Atoi(id)
 
-	sqlStatement := "UPDATE users SET first_name = $2, last_name = $3, email = $4 WHERE id = $1"
-	_, err := db.Exec(sqlStatement, e.ID, e.FirstName, e.LastName, e.Email)
+	sqlStatement := "UPDATE users SET first_name = $2, last_name = $3, email = $4, phone = $5 WHERE id = $1"
+	_, err := db.Exec(sqlStatement, e.ID, e.FirstName, e.LastName, e.Email, e.Phone)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -198,14 +206,14 @@ func ReadUser(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	e := new(Employee)
 	for rows.Next() {
-		err = rows.Scan(&e.ID, &e.FirstName, &e.LastName, &e.Email)
+		err = rows.Scan(&e.ID, &e.FirstName, &e.LastName, &e.Email, &e.Phone)
 		if err != nil {
 			tx.Rollback()
 			log.Fatal(err)
 		}
 	}
-	sqlStatement = "SELECT * FROM accounts WHERE id_user = $1"
-	rows, err = db.Query(sqlStatement, id)
+	sqlStatement = "SELECT * FROM accounts WHERE id_user = $1 and active = $2"
+	rows, err = db.Query(sqlStatement, id, false)
 	if err != nil {
 		tx.Rollback()
 		log.Fatal(err)
@@ -213,7 +221,7 @@ func ReadUser(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		a := new(Account)
-		err = rows.Scan(&a.ID, &a.UserID, &a.Value)
+		err = rows.Scan(&a.ID, &a.UserID, &a.Value, &a.Currency, &a.Active)
 		if err != nil {
 			tx.Rollback()
 			log.Fatal(err)
@@ -243,66 +251,65 @@ func CreateAccount(w http.ResponseWriter, r *http.Request) {
 		log.Println("Users printed")
 	}
 
-	sqlStatement := "INSERT INTO accounts (id_user, value)	VALUES ($1, $2)"
-	_, err := db.Exec(sqlStatement, id, a.Value)
+	sqlStatement := "INSERT INTO accounts (id_user, value, currency) VALUES ($1, $2, $3)"
+	_, err := db.Exec(sqlStatement, id, a.Value, a.Currency)
 	if err != nil {
 		log.Fatal(err)
 	}
-	http.Redirect(w, r, r.URL.RequestURI(), 301)
+	s := fmt.Sprintf("http://localhost:9090/users/%s", id)
+	http.Redirect(w, r, s, 301)
 	log.Printf("Account for user with id %s created", id)
 }
 
 func ReadAccount(w http.ResponseWriter, r *http.Request) {
 	log.Println("Read Account function started")
-	acc_id, _ := r.URL.Query()["acc_id"]
-	account_id := acc_id[0]
-
 	id := mux.Vars(r)["id"]
+	accID := mux.Vars(r)["acc_id"]
 	if id == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "ID mustn't be empty")
 		return
 	}
-	sqlStatement := "SELECT value FROM accounts WHERE id = $1"
-	rows, err := db.Query(sqlStatement, account_id)
+	sqlStatement := "SELECT value, currency FROM accounts WHERE id = $1 and active = $2"
+	rows, err := db.Query(sqlStatement, accID, false)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-	var value int
+	var value, currency int
 	for rows.Next() {
-		err = rows.Scan(&value)
-		log.Print(err)
+		err = rows.Scan(&value, &currency)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 	result := make(map[string]int)
-	result["id"], _ = strconv.Atoi(account_id)
+	result["id"], _ = strconv.Atoi(accID)
 	result["value"] = value
+	result["currency"] = currency
 	marshaled, _ := json.MarshalIndent(result, "", " ")
 	w.Write(marshaled)
-	log.Printf("Account with id %s printed", account_id)
+	log.Printf("Account with id %s printed", accID)
 }
 
 func DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	log.Println("Delete Account function started")
 	id := mux.Vars(r)["id"]
-	account_id := mux.Vars(r)["AccountID"]
+	accID := mux.Vars(r)["acc_id"]
 	if id == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "ID mustn't be empty")
 		return
 	}
-	sqlStatement := "DELETE FROM accounts WHERE id = $1"
-	_, err := db.Exec(sqlStatement, account_id)
+	sqlStatement := "DELETE FROM accounts WHERE id = $1 and active = $2"
+	_, err := db.Exec(sqlStatement, accID, false)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	s := fmt.Sprintf("http://localhost:9090/users/%s", id)
 	http.Redirect(w, r, s, 301)
-	log.Printf("Account %s users with id %s deleted", account_id, id)
+	log.Printf("Account %s users with id %s deleted", accID, id)
 }
 
 func ListTransactions(w http.ResponseWriter, r *http.Request) {
@@ -312,14 +319,14 @@ func ListTransactions(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-	result := []Transaction{}
+	result := make(map[int]Transaction)
 	for rows.Next() {
 		t := new(Transaction)
 		err := rows.Scan(&t.ID, &t.Type, &t.AccountForOperationID, &t.RecievedIDAccount, &t.Value, &t.Canceled, &t.CanceledID)
 		if err != nil {
 			log.Fatal(err)
 		}
-		result = append(result, *t)
+		result[t.ID] = *t
 	}
 	marshaled, _ := json.MarshalIndent(result, "", " ")
 	w.Write(marshaled)
@@ -430,6 +437,10 @@ func CancelTransaction(w http.ResponseWriter, r *http.Request) {
 			tx.Rollback()
 			log.Fatal(err)
 		}
+	}
+	if t.Canceled == true {
+		tx.Rollback()
+		log.Fatal("Transaction was canceled before")
 	}
 	switch command := t.Type; command {
 	case commands["Withdraw"]:
