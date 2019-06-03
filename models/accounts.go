@@ -1,9 +1,9 @@
 package models
 
 import (
-	"log"
 	"strconv"
 
+	"github.com/golang/glog"
 	_ "github.com/lib/pq"
 	"github.com/rest/config"
 )
@@ -17,44 +17,59 @@ type Account struct {
 }
 
 func CAccount(a Account, id string) {
-	log.Println("CAccount function started")
+	glog.V(3).Info("CAccount function started")
 	sqlStatement := "INSERT INTO accounts (id_user, value, currency) VALUES ($1, $2, $3)"
 	_, err := config.DB.Exec(sqlStatement, id, a.Value, a.Currency)
 	if err != nil {
-		log.Fatal(err)
+		glog.Fatal(err)
 	}
-	log.Printf("Account for user with id %s created", id)
 }
 
 func RAccount(id, accID string) map[string]int {
-	log.Println("RAccount function started")
+	glog.V(3).Info("RAccount function started")
 	sqlStatement := "SELECT value, currency FROM accounts WHERE id = $1 and active = $2"
 	rows, err := config.DB.Query(sqlStatement, accID, false)
 	if err != nil {
-		log.Fatal(err)
+		glog.Fatal(err)
 	}
 	defer rows.Close()
 	var value, currency int
 	for rows.Next() {
 		err = rows.Scan(&value, &currency)
 		if err != nil {
-			log.Fatal(err)
+			glog.Fatal(err)
 		}
 	}
 	result := make(map[string]int)
 	result["id"], _ = strconv.Atoi(accID)
 	result["value"] = value
 	result["currency"] = currency
-	log.Printf("Account with id %s printed", accID)
 	return result
 }
 
 func DAccount(id, accID string) {
-	log.Println("DAccount function started")
+	glog.V(3).Info("DAccount function started")
 	sqlStatement := "DELETE FROM accounts WHERE id = $1 and active = $2"
 	_, err := config.DB.Exec(sqlStatement, accID, false)
 	if err != nil {
-		log.Fatal(err)
+		glog.Fatal(err)
 	}
-	log.Printf("Account %s users with id %s deleted", accID, id)
+}
+
+func GetUserIDFromAccount(acc_id int) (id int) {
+	glog.V(3).Info("GetUserIDFromAccount function started")
+	sqlStatement := "SELECT * FROM accounts WHERE id = $1"
+	rows, err := config.DB.Query(sqlStatement, acc_id)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	defer rows.Close()
+	a := Account{}
+	for rows.Next() {
+		err = rows.Scan(&a.ID, &a.UserID, &a.Value, &a.Currency, &a.Active)
+		if err != nil {
+			glog.Fatal(err)
+		}
+	}
+	return a.UserID
 }

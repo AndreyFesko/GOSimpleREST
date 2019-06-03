@@ -3,8 +3,8 @@ package config
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
+	"github.com/golang/glog"
 	_ "github.com/lib/pq"
 )
 
@@ -23,9 +23,9 @@ func init() {
 	var err error
 	DB, err = sql.Open("postgres", psqlInfo)
 	if err != nil {
-		log.Fatal(err)
+		glog.Fatal(err)
 	}
 	if err = DB.Ping(); err != nil {
-		log.Fatal(err)
+		glog.Fatal(err)
 	}
 }
