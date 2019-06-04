@@ -1,0 +1,630 @@
+{
+	"info": {
+		"_postman_id": "947c2b77-4c1b-4e3f-b5f1-8cf15fe4f6bc",
+		"name": "RESTGo",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Accounts",
+			"item": [
+				{
+					"name": "Create account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0a4ff962-37eb-4904-9d20-b6e5ad79b2a3",
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201,202]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"users_id\":14,\n\t\"value\":37900,\n\t\"currency\":1\n}"
+						},
+						"url": {
+							"raw": "{{url}}/{{users}}/14/{{accounts}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{users}}",
+								"14",
+								"{{accounts}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read account (balance)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3185a161-9761-410e-9b58-e98772fe49f2",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/{{users}}/14/{{accounts}}/53/balance",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{users}}",
+								"14",
+								"{{accounts}}",
+								"53",
+								"balance"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "cb22c3f7-40c9-4898-a469-a5e76aee65c1",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/{{users}}/14/{{accounts}}/53",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{users}}",
+								"14",
+								"{{accounts}}",
+								"53"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8e8c8404-c4c8-4c3a-8d7e-c68839080bf4",
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201,202]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"first_name\":\"John\",\n\t\"last_name\":\"Smith\",\n\t\"email\":\"JohnSmith@gmail.com\"\n}"
+						},
+						"url": {
+							"raw": "{{url}}/{{users}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{users}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5b3954bf-e2a1-48af-bc28-ab5c5da2d280",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"first_name\":\"John\",\n\t\"last_name\":\"Smith\",\n\t\"email\":\"JohnSmith@gmail.com\",\n\t\"phone\":\"375441112233\"\n}"
+						},
+						"url": {
+							"raw": "{{url}}/{{users}}/24",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{users}}",
+								"24"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f971524b-b80c-4498-a55b-454225d4d4c4",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/{{users}}/24",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{users}}",
+								"24"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "307ce246-9526-4895-a180-8a1817d9173c",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/{{users}}/24",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{users}}",
+								"24"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0069e21b-1e57-4b42-8536-782be387fd45",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/{{users}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{users}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "List transactions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0a914c82-500b-435c-bc8c-c58d097f749b",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/{{transactions}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{transactions}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create transactions (Deposit)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1ac9d72d-666c-4347-96ce-be2b581b0736",
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201,202]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\":\"Deposit\",\n\t\"acc_for_operation\":44,\n\t\"value\":25000\n}"
+						},
+						"url": {
+							"raw": "{{url}}/{{transactions}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{transactions}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create transaction (Withdraw)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "fb2bebd5-f4ba-413c-8f62-d0c6d1b7a414",
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201,202]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\":\"Withdraw\",\n\t\"acc_for_operation\":44,\n\t\"value\":25000\n}"
+						},
+						"url": {
+							"raw": "{{url}}/{{transactions}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{transactions}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create transaction (Transfer)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2be8057a-1a98-44e4-845c-a9ac3ae1c68a",
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201,202]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"type\":\"Transfer\",\n\t\"acc_for_operation\":44,\n\t\"recieved_id\":45,\n\t\"value\":10000\n}"
+						},
+						"url": {
+							"raw": "{{url}}/{{transactions}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{transactions}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel transaction (Deposit)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d1043e76-a64d-44b5-b80f-fdf2185a4292",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/{{transactions}}/78",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{transactions}}",
+								"78"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel transactions (Withdraw)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a01fede2-c40c-4935-b125-5e539eb0b6b4",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/{{transactions}}/79",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{transactions}}",
+								"79"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel transactions (Transfer)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "82f69962-586f-45be-978f-da62198bd036",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/{{transactions}}/80",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"{{transactions}}",
+								"80"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "a6353914-0bf4-4b94-9e95-9e00de479826",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "b3642a25-dbbb-4e8a-b59e-d20e0953dbd6",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "6bda1c45-467b-47e1-ba44-fa2c752c6187",
+			"key": "url",
+			"value": "localhost:9090",
+			"type": "string"
+		},
+		{
+			"id": "95c7ba72-9bf8-4a68-9a68-ec7ab2ea0efa",
+			"key": "users",
+			"value": "users",
+			"type": "string"
+		},
+		{
+			"id": "67e74e1a-0205-4a3f-8259-003e1f1161b6",
+			"key": "account",
+			"value": "account",
+			"type": "string"
+		},
+		{
+			"id": "9052e5f8-8922-453a-92bd-0336c7b2fce4",
+			"key": "transactions",
+			"value": "transactions",
+			"type": "string"
+		}
+	]
+}
