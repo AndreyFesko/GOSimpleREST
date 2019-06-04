@@ -1,4 +1,4 @@
-go run *.go -logtostderr=true -v=2 [2,3,4]
+<h4>Go run *.go -logtostderr=true -v=2 [2,3,4]</h4>
 
 1.  REST API микросервиса на Golang.
 2. Простой консольный клиент для общения с сервером, через который можно выполнять запросы к API.
