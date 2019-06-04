@@ -8,6 +8,7 @@ import (
 	"github.com/rest/config"
 )
 
+// Account struct
 type Account struct {
 	ID       int  `json:"id"`
 	UserID   int  `json:"user_id"`
@@ -16,6 +17,7 @@ type Account struct {
 	Active   bool `json:"active"`
 }
 
+// CAccount create account
 func CAccount(a Account, id string) {
 	glog.V(3).Info("CAccount function started")
 	sqlStatement := "INSERT INTO accounts (id_user, value, currency) VALUES ($1, $2, $3)"
@@ -25,28 +27,30 @@ func CAccount(a Account, id string) {
 	}
 }
 
-func RAccount(id, accID string) map[string]int {
+// RAccount takes balance account
+func RAccount(id, accID string) (map[string]int, error) {
 	glog.V(3).Info("RAccount function started")
+	result := make(map[string]int)
 	sqlStatement := "SELECT value, currency FROM accounts WHERE id = $1 and active = $2"
 	rows, err := config.DB.Query(sqlStatement, accID, false)
 	if err != nil {
-		glog.Fatal(err)
+		return result, err
 	}
 	defer rows.Close()
 	var value, currency int
 	for rows.Next() {
 		err = rows.Scan(&value, &currency)
 		if err != nil {
-			glog.Fatal(err)
+			return result, err
 		}
 	}
-	result := make(map[string]int)
 	result["id"], _ = strconv.Atoi(accID)
 	result["value"] = value
 	result["currency"] = currency
-	return result
+	return result, nil
 }
 
+// DAccount delete account
 func DAccount(id, accID string) {
 	glog.V(3).Info("DAccount function started")
 	sqlStatement := "DELETE FROM accounts WHERE id = $1 and active = $2"
@@ -56,20 +60,21 @@ func DAccount(id, accID string) {
 	}
 }
 
-func GetUserIDFromAccount(acc_id int) (id int) {
+// GetUserIDFromAccount takes user ID by account ID
+func GetUserIDFromAccount(accID int) (id int, err error) {
 	glog.V(3).Info("GetUserIDFromAccount function started")
+	a := Account{}
 	sqlStatement := "SELECT * FROM accounts WHERE id = $1"
-	rows, err := config.DB.Query(sqlStatement, acc_id)
+	rows, err := config.DB.Query(sqlStatement, accID)
 	if err != nil {
-		glog.Fatal(err)
+		return a.UserID, err
 	}
 	defer rows.Close()
-	a := Account{}
 	for rows.Next() {
 		err = rows.Scan(&a.ID, &a.UserID, &a.Value, &a.Currency, &a.Active)
 		if err != nil {
-			glog.Fatal(err)
+			return a.UserID, err
 		}
 	}
-	return a.UserID
+	return a.UserID, nil
 }

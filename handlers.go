@@ -15,9 +15,16 @@ import (
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	glog.V(3).Info("Handler GetUsers")
 
-	result := models.ListUsers()
+	result, err := models.ListUsers()
+	if err != nil {
+		glog.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "StatusInternalServerError")
+		return
+	}
 	marshaled, _ := json.MarshalIndent(result, "", " ")
 	w.Write(marshaled)
+	w.WriteHeader(http.StatusOK)
 	glog.V(2).Info("Users printed")
 }
 
@@ -26,10 +33,13 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var e models.Employee
 
 	if err := json.NewDecoder(r.Body).Decode(&e); err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Bad Request")
+		return
 	}
 	models.CUser(e)
-	http.Redirect(w, r, "http://localhost:9090/users", 301)
+	w.WriteHeader(http.StatusCreated)
 	glog.V(2).Info("User created")
 }
 
@@ -37,10 +47,13 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	glog.V(3).Info("Handler DeleteUser")
 	id := mux.Vars(r)["id"]
 	if id == "" {
-		glog.Fatal("ID mustn't be empty")
+		glog.Error("ID mustn't be empty")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Bad Request")
+		return
 	}
 	models.DUser(id)
-	http.Redirect(w, r, "http://localhost:9090/users", 301)
+	w.WriteHeader(http.StatusOK)
 	glog.V(2).Info("User removed")
 }
 
@@ -48,12 +61,15 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	glog.V(3).Info("Handler UpdateUser")
 	var e models.Employee
 	if err := json.NewDecoder(r.Body).Decode(&e); err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Bad Request")
+		return
 	}
 	id := mux.Vars(r)["id"]
 	e.ID, _ = strconv.Atoi(id)
 	models.UUser(e, id)
-	http.Redirect(w, r, "http://localhost:9090/users", 301)
+	w.WriteHeader(http.StatusOK)
 	glog.V(2).Info("User updated")
 }
 
@@ -61,11 +77,21 @@ func ReadUser(w http.ResponseWriter, r *http.Request) {
 	glog.V(3).Info("Handler ReadUser")
 	id := mux.Vars(r)["id"]
 	if id == "" {
-		glog.Fatal("ID must'n be empty")
+		glog.Error("ID mustn't be empty")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Bad Request")
+		return
 	}
-	e := models.RUser(id)
+	e, err := models.RUser(id)
+	if err != nil {
+		glog.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "StatusInternalServerError")
+		return
+	}
 	marshaled, _ := json.MarshalIndent(e, "", " ")
 	w.Write(marshaled)
+	w.WriteHeader(http.StatusOK)
 	glog.V(2).Info("Data user printed")
 }
 
@@ -73,15 +99,20 @@ func CreateAccount(w http.ResponseWriter, r *http.Request) {
 	glog.V(3).Info("Handler CreateAccount")
 	id := mux.Vars(r)["id"]
 	if id == "" {
-		glog.Fatal("ID mustn't be empty")
+		glog.Error("ID mustn't be empty")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Bad Request")
+		return
 	}
 	var a models.Account
 	if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Bad Request")
+		return
 	}
 	models.CAccount(a, id)
-	s := fmt.Sprintf("http://localhost:9090/users/%s", id)
-	http.Redirect(w, r, s, 301)
+	w.WriteHeader(http.StatusCreated)
 	glog.V(2).Info("Account created")
 }
 
@@ -90,11 +121,21 @@ func ReadAccount(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	accID := mux.Vars(r)["acc_id"]
 	if id == "" {
-		glog.Fatal("ID mustn't be empty")
+		glog.Error("ID mustn't be empty")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Bad Request")
+		return
 	}
-	result := models.RAccount(id, accID)
+	result, err := models.RAccount(id, accID)
+	if err != nil {
+		glog.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "StatusInternalServerError")
+		return
+	}
 	marshaled, _ := json.MarshalIndent(result, "", " ")
 	w.Write(marshaled)
+	w.WriteHeader(http.StatusOK)
 	glog.V(2).Info("Data account printed")
 }
 
@@ -103,16 +144,22 @@ func DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	accID := mux.Vars(r)["acc_id"]
 	models.DAccount(id, accID)
-	s := fmt.Sprintf("http://localhost:9090/users/%s", id)
-	http.Redirect(w, r, s, 301)
+	w.WriteHeader(http.StatusOK)
 	glog.V(2).Info("Account removed")
 }
 
 func ListTransactions(w http.ResponseWriter, r *http.Request) {
 	glog.V(3).Info("Handler ListTransactions")
-	result := models.LTransactions()
+	result, err := models.LTransactions()
+	if err != nil {
+		glog.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "StatusInternalServerError")
+		return
+	}
 	marshaled, _ := json.MarshalIndent(result, "", " ")
 	w.Write(marshaled)
+	w.WriteHeader(http.StatusOK)
 	glog.V(2).Info("List transactions printed")
 }
 
@@ -120,11 +167,14 @@ func CreateTransactions(w http.ResponseWriter, r *http.Request) {
 	glog.V(3).Info("Handler CreateTransactions")
 	var t models.Transaction
 	if err := json.NewDecoder(r.Body).Decode(&t); err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Bad Request")
+		return
 	}
 	models.Transactions(t)
 	models.SendMessage(t)
-	http.Redirect(w, r, r.URL.RequestURI(), 301)
+	w.WriteHeader(http.StatusCreated)
 	glog.V(2).Info("Transaction created")
 }
 
@@ -132,9 +182,12 @@ func CancelTransaction(w http.ResponseWriter, r *http.Request) {
 	glog.V(3).Info("Handler CancelTransaction")
 	id := mux.Vars(r)["id"]
 	if id == "" {
-		glog.Fatal("ID mustn't be empty")
+		glog.Error("ID mustn't be empty")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Bad Request")
+		return
 	}
 	models.CTransaction(id)
-	http.Redirect(w, r, "http://localhost:9090/transactions", 301)
+	w.WriteHeader(http.StatusOK)
 	glog.V(2).Info("Transaction canceled")
 }
